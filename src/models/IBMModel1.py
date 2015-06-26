@@ -128,3 +128,4 @@ def unsupervisedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext)
         for (sWord, tWord) in stCoOccurrenceCount:
             tProb[(sWord, tWord)] = stCounts[(sWord, tWord)] / tCounts[tWord]
 
+    return tProb
