@@ -20,10 +20,11 @@ import sys
 from IBM_Model1 import EM_IBM1
 
 
+
 #from HMM import baumWelch, findBestAlignmentsForAll, findBestAlignmentsForAllWithIntersection, findBestAlignmentsForAll_AER, findBestAlignmentsForAllWithIntersection_AER, baumWelchP
-from src.unsupervised.HMM_with_length_with_array_null import findBestAlignmentsForAll_AER, baumWelchP
-from src.unsupervised.featurized_hmm_mp_e_step_parallel_theta_efficient import get_features_fired, em_with_features
-from evaluate import grade_align, convert_giza_out_to_aer_out
+from HMM_with_length_with_array_null import findBestAlignmentsForAll_AER, baumWelchP
+from featurized_hmm_mp_e_step_parallel_theta_efficient import get_features_fired, em_with_features
+from src.tools.evaluate import grade_align, convert_giza_out_to_aer_out
 from collections import defaultdict
 
 import time
