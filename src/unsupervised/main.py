@@ -13,26 +13,20 @@ __author__ = 'amansour'
     -n NUMBER       number of training examples to use, Default: n = sys.maxint
 """
 import optparse
-import sys
 import os.path
-import HMM
+
+import sys
+
 from IBM_Model1 import EM_IBM1
+
+
 #from HMM import baumWelch, findBestAlignmentsForAll, findBestAlignmentsForAllWithIntersection, findBestAlignmentsForAll_AER, findBestAlignmentsForAllWithIntersection_AER, baumWelchP
-from HMM_with_length_with_array_null import baumWelch, findBestAlignmentsForAll, findBestAlignmentsForAllWithIntersection, findBestAlignmentsForAll_AER, findBestAlignmentsForAllWithIntersection_AER, baumWelchP
-from featurized_hmm_mp_e_step_parallel_theta_efficient import get_features_fired, em_with_features, get_gradient_with_counts, print_dictionary, get_likelihood_with_expected_counts
+from src.unsupervised.HMM_with_length_with_array_null import findBestAlignmentsForAll_AER, baumWelchP
+from src.unsupervised.featurized_hmm_mp_e_step_parallel_theta_efficient import get_features_fired, em_with_features
 from evaluate import grade_align, convert_giza_out_to_aer_out
-import math
-import time
 from collections import defaultdict
 
-import numpy as np
-import pickle
-from numpy import zeros,sum,ones
-from math import log
 import time
-import multiprocessing as mp
-from multiprocessing import Process, Value, Array
-import ctypes as ct
 
 
 optparser = optparse.OptionParser()

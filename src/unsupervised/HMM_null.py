@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from astropy.table.tests.conftest import table_type
 
 __author__ = 'amansour'
 
 from collections import defaultdict
+from multiprocessing import Process, Value, Array
+from multiprocessing import RLock
+import ctypes as ct
+
 from numpy import zeros, ones, log
 import sys
 import time
-from multiprocessing import Process, Value, Array
-from multiprocessing import Pool, RLock
-import ctypes as ct
 import numpy as np
-from HMM import check_probability
+
+from src.unsupervised.HMM import check_probability
+
 
 p0H = 0.05
 null_emission_prob = 0.1
