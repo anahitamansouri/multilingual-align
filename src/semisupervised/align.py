@@ -5,6 +5,7 @@ __author__ = 'Jasneet Sabharwal <jsabharw@sfu.ca>'
 import optparse
 import sys
 import os
+import time
 from collections import defaultdict
 
 from src.tools.fileReaders import readPartialAlignments
@@ -23,8 +24,14 @@ def runIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, partialA
     :param interpolationWeight: lambda for linear interpolation of two models
     :return: translation probability, t(f|e)
     """
+    startTime = time.time()
+
     tProb = supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments)
     tProb = interpolatedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, tProb, interpolationWeight)
+
+    endTime = time.time()
+    print "RUN TIME FOR IBM MODEL! %.2gs" % (endTime - startTime)
+
     return tProb
 
 if __name__ == '__main__':
