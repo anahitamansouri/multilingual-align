@@ -1,6 +1,5 @@
-from __future__ import division
-
 # -*- coding: utf-8 -*-
+from __future__ import division
 
 __author__ = 'Jasneet Sabharwal <jsabharw@sfu.ca>'
 
