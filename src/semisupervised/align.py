@@ -105,4 +105,4 @@ if __name__ == '__main__':
 
     # Run IBM Model 1
     partialAlignments = readPartialAlignments(opts.annotation, opts.annotationSourceColumn, opts.annotationTargetColumn)
-    runIBMModel1(fCount, eCount, feCount, bitextFE, partialAlignments, opts.ibm1Lambda)
+    tProb = runIBMModel1(fCount, eCount, feCount, bitextFE, partialAlignments, opts.ibm1Lambda)
