@@ -118,8 +118,8 @@ def print_alignment_SD_ibm1(bitext,t_sd, alignmentFile, num_lines):
         for (i_s,argmax_s) in set1:
             sys.stdout.write("%i-%i " % (i_s+1,argmax_s+1))
             alignment.write("%i-%i " % (i_s+1,argmax_s+1))
-	sys.stdout.write("\n")
-	alignment.write("\n")
+        sys.stdout.write("\n")
+        alignment.write("\n")
         if n == num_lines-1:
                 return
     return alignment
