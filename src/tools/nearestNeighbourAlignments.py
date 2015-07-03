@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial.distance import cosine
 import multiprocessing
 from os import getpid
-
+import time
 
 def readVectors(fileName):
     vocab = []
@@ -44,6 +44,22 @@ def findClosestVector(sIdx, sVector, tVectors, returnDict):
     returnDict[sIdx] = smallestCosineIdx
 
 
+def canStartMoreJobs(jobs):
+    cpuCounts = multiprocessing.cpu_count()
+    currentProcesses = 0
+    for proc in jobs:
+        if proc.is_alive():
+            currentProcesses += 1
+
+    print "---- CURRENT RUNNING PROCESS: {}".format(currentProcesses)
+    print "---- CPU COUNTS: {}".format(cpuCounts)
+
+    if currentProcesses <= cpuCounts:
+        return True
+    else:
+        return False
+
+
 if __name__ == '__main__':
     optParser = argparse.ArgumentParser()
     optParser.add_argument("-sv", "--sourceVectors", dest="sourceVectors", help="Source vectors file (example: english)")
@@ -57,8 +73,8 @@ if __name__ == '__main__':
 
 
     # test
-    sVectors = sVectors[:10]
-    sVocab = sVocab[:10]
+    #sVectors = sVectors[:100]
+    #sVocab = sVocab[:100]
 
     print "#"*10+"Calculating Cosines"+"#"*10
     manager = multiprocessing.Manager()
@@ -67,10 +83,16 @@ if __name__ == '__main__':
 
     for sIdx, sVector in enumerate(sVectors):
         print '\tCalculating Cosine for: {} - {}'.format(sIdx, sVocab[sIdx])
-        findClosestVector(sIdx, sVector, tVectors, nearestVectorsIdx)
+
         proc = multiprocessing.Process(target=findClosestVector, args=(sIdx, sVector, tVectors, nearestVectorsIdx))
         jobs.append(proc)
         proc.start()
+        while True:
+            if canStartMoreJobs(jobs):
+                break
+            else:
+                print "$$$$ WAITING FOR PROCESSOR SPACE $$$$"
+                time.sleep(1)
 
     for proc in jobs:
         proc.join()
