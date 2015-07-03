@@ -9,11 +9,13 @@ import time
 from collections import defaultdict
 
 from src.tools.fileReaders import readPartialAlignments
-from src.models.IBMModel1 import supervisedIBMModel1, interpolatedIBMModel1
+from src.models.IBMModel1 import supervisedIBMModel1, interpolatedIBMModel1, unsupervisedIBMModel1
 from src.unsupervised.featurized_hmm_mp_e_step_parallel_theta_efficient import get_features_fired
+from src.unsupervised.HMM_with_length_with_array_null import baumWelchP
 
 
-def runIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, partialAlignments, interpolationWeight):
+def runIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, partialAlignments, interpolationWeight,
+                 interpolate=True):
     """
     Execute supervised IBM Model 1 and then execute unsupervised-iterpolated IBM Model1
     :param sVocabCount: source vocab occurrence count
@@ -22,17 +24,34 @@ def runIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, partialA
     :param bitext: parallel source and target sentences
     :param partialAlignments: partial alignments
     :param interpolationWeight: lambda for linear interpolation of two models
+    :param interpolate: If interpolation should be performed or should use the unsupervised IBM Model1
     :return: translation probability, t(f|e)
     """
     startTime = time.time()
 
-    tProb = supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments)
-    tProb = interpolatedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, tProb, interpolationWeight)
+    if interpolate:
+        tProb = supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments)
+        tProb = interpolatedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, tProb, interpolationWeight)
+    else:
+        tProb = unsupervisedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext)
 
     endTime = time.time()
     print "RUN TIME FOR IBM MODEL! %.2gs" % (endTime - startTime)
 
     return tProb
+
+
+def runHMM(sourceVocabCount, stCoOccurrenceCount, bitext, ibmTProb):
+    startTime = time.time()
+    # TODO: Call supervised HMM here
+    transitionMatrix, stateDistribution, emissionMatrix = supervisedBaumWelch(sourceVocabCount,
+                                                                              stCoOccurrenceCount, bitext, ibmTProb)
+    transitionMatrix, stateDistribution, emissionMatrix = baumWelchP(bitext, sourceVocabCount, ibmTProb,
+                                                                     stCoOccurrenceCount, transitionMatrix,
+                                                                     stateDistribution, emissionMatrix)
+    endTime = time.time()
+    print "RUN TIME FOR HMM! %.2gs" % (endTime - startTime)
+
 
 if __name__ == '__main__':
     optParser = optparse.OptionParser()
@@ -45,6 +64,7 @@ if __name__ == '__main__':
     optParser.add_option("-asc", "--annotationSourceColumn", dest="annotationSourceColumn", defaul=0, type="int", help="Partial annotations column number of source words in file")
     optParser.add_option("-atc", "--annotationTargetColumn", dest="annotationTargetColumn", defaul=1, type="int", help="Partial annotations Column number of target words in file")
     optParser.add_option("-l1", "--ibm1Lambda", dest="ibm1Lambda", default=0.5, type="float", help="Interpolation lambda for IBM Model 1 (default=0.5)")
+    optParser.add_option("-i1", "--interIBMModel1", dest="interIBMModel1", default=True, type="boolean", help="Should interpolate IBM Model 1 or not (default=True)")
 
     (opts, _) = optParser.parse_args()
 
@@ -105,4 +125,7 @@ if __name__ == '__main__':
 
     # Run IBM Model 1
     partialAlignments = readPartialAlignments(opts.annotation, opts.annotationSourceColumn, opts.annotationTargetColumn)
-    tProb = runIBMModel1(fCount, eCount, feCount, bitextFE, partialAlignments, opts.ibm1Lambda)
+    tProb = runIBMModel1(fCount, eCount, feCount, bitextFE, partialAlignments, opts.ibm1Lambda, opts.interIBMModel1)
+
+    #Run HMM
+    transitionMatrix, stateDistribution, emissionMatrix = runHMM(fCount, feCount, bitextFE, tProb)
