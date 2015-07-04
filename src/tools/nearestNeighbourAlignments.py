@@ -71,11 +71,6 @@ if __name__ == '__main__':
     sVectors, sVocab = readVectors(args.sourceVectors)
     tVectors, tVocab = readVectors(args.targetVectors)
 
-
-    # test
-    #sVectors = sVectors[:100]
-    #sVocab = sVocab[:100]
-
     print "#"*10+"Calculating Cosines"+"#"*10
     manager = multiprocessing.Manager()
     nearestVectorsIdx = manager.dict()
