@@ -9,7 +9,9 @@ from collections import defaultdict, Counter
 def readPartialAlignments(alignmentFile):
     result = defaultdict(list)
     with open(alignmentFile) as inFile:
-        for line in inFile:
+        for idx, line in enumerate(inFile):
+            if idx%5000 == 0:
+                print idx
             line = line.strip('\r\n')
             if line:
                 lineSplit = line.split('\t')
@@ -23,7 +25,9 @@ def readPOSTaggedCorpora(corporaFile):
     vocabMultiPOS = defaultdict(list)
 
     with open(corporaFile) as inFile:
-        for line in inFile:
+        for idx, line in enumerate(inFile):
+            if idx%5000 == 0:
+                print idx
             line = line.strip('\r\n')
             if line:
                 lineSplit = line.split(' ')
@@ -119,8 +123,15 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', target='outputFile', help='Filtered partial alignment file')
     args = parser.parse_args()
 
+    print '$'*10 + ' READING PARTIAL ALIGNMENTS ' + '$'*10
     partialAlignments = readPartialAlignments(args.alignmentFile)
+
+    print '$'*10 + ' READING POS TAGGED CORPORA ' + '$'*10
     vocabPOS, vocabCount = readPOSTaggedCorpora(args.posFile)
+
+    print '$'*10 + ' FILTERING VOCAB BY FREQUENCY ' + '$'*10
     filteredWords = filterVocabByFrequency(vocabPOS, vocabCount, args.nounFreq, args.verbFreq, args.advFreq,
                                            args.adjFreq)
+
+    print '$'*10 + ' WRITING PARTIAL ALIGNMENTS ' + '$'*10
     writePartialAlignments(filteredWords, partialAlignments, args.outputFile)
