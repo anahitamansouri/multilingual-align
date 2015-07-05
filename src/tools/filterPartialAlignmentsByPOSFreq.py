@@ -16,6 +16,7 @@ def readPartialAlignments(alignmentFile):
             if line:
                 lineSplit = line.split('\t')
                 result[lineSplit[0].strip()].append(lineSplit[1].strip())
+        print idx
     return result
 
 
@@ -58,6 +59,7 @@ def readPOSTaggedCorpora(corporaFile):
                     if pos is not None:
                         vocabMultiPOS[token.lower()].append(pos)
                         vocabCounts[token.lower()] += 1
+        print idx
 
     for word, poss in vocabMultiPOS.iteritems():
         mostCommonPOS = Counter(poss).most_common(1)[0][0]
