@@ -94,7 +94,7 @@ def filterVocabByFrequency(vocabPOS, vocabCounts, nFreq, vFreq, rbFreq, jjFreq):
     posCounted = defaultdict(int)
     for word, count in vocabCounts:
         pos = vocabPOS[word]
-        if posCounted[pos] <= getPOSFreq(pos, nFreq, vFreq, rbFreq, jjFreq):
+        if posCounted[pos] < getPOSFreq(pos, nFreq, vFreq, rbFreq, jjFreq):
             result.append(word)
             posCounted[pos] += 1
         if hasPOSCountLimitReached(posCounted, nFreq, vFreq, rbFreq, jjFreq):
