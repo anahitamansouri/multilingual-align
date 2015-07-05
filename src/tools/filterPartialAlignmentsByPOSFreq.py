@@ -96,6 +96,7 @@ def filterVocabByFrequency(vocabPOS, vocabCounts, nFreq, vFreq, rbFreq, jjFreq):
             result.append(word)
             posCounted[pos] += 1
         if hasPOSCountLimitReached(posCounted, nFreq, vFreq, rbFreq, jjFreq):
+            print '#'*5 + 'POS COUNTS: {}'.format(' || '.join([pos+' - '+str(count) for pos, count in posCounted.iteritems()])) + '#'*5
             break
     return result
 
@@ -110,17 +111,17 @@ def writePartialAlignments(sourceWords, alignments, outputFile):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--alignments', target='alignmentFile', help='Partial alignments file')
-    parser.add_argument('-i', '--input', target='posFile', help='POS tagged corpora')
-    parser.add_argument('-n', '--nouns', target='nounFreq', type=int, default=250,
+    parser.add_argument('-a', '--alignments', dest='alignmentFile', help='Partial alignments file')
+    parser.add_argument('-i', '--input', dest='posFile', help='POS tagged corpora')
+    parser.add_argument('-n', '--nouns', dest='nounFreq', type=int, default=250,
                         help='Noun frequency (default: 250)')
-    parser.add_argument('-v', '--verbs', target='verbFreq', type=int, default=250,
+    parser.add_argument('-v', '--verbs', dest='verbFreq', type=int, default=250,
                         help='Verb frequency (default: 250)')
-    parser.add_argument('-rb', '--adverbs', target='advFreq', type=int, default=250,
+    parser.add_argument('-rb', '--adverbs', dest='advFreq', type=int, default=250,
                         help='Adverb frequency (default: 250)')
-    parser.add_argument('-jj', '--adjectives', target='adjFreq', type=int, default=250,
+    parser.add_argument('-jj', '--adjectives', dest='adjFreq', type=int, default=250,
                         help='Adjective frequency (default: 250)')
-    parser.add_argument('-o', '--output', target='outputFile', help='Filtered partial alignment file')
+    parser.add_argument('-o', '--output', dest='outputFile', help='Filtered partial alignment file')
     args = parser.parse_args()
 
     print '$'*10 + ' READING PARTIAL ALIGNMENTS ' + '$'*10
