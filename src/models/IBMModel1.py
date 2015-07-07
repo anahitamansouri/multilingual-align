@@ -4,6 +4,8 @@ from __future__ import division
 __author__ = 'Jasneet Sabharwal <jsabharw@sfu.ca>'
 
 from collections import defaultdict
+from ibmModelCommons import maximizationTProb, maximizationQProb, initializeQProbUniformly, initializeTProbUniformly, \
+    initializeCounts, maximizationInterpolatedTProb, maximizationInterpolatedQProb
 
 
 def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
@@ -17,33 +19,41 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
     """
 
     # translation probability
-    tProb = defaultdict(int)
+    tProb = defaultdict(float)
+    qProb = defaultdict(float)
 
-    stCounts = defaultdict(int)
-    tCounts = defaultdict(int)
+    stCounts, tCounts, jiCounts, iCounts = initializeCounts()
+
+    lValues = set()
+    mValues = set()
+    jValues = set()
+    iValues = set()
 
     # Collect counts
     for (source, target) in bitext:
-        for sWord in source:
+        for sIdx, sWord in enumerate(source):
             if sWord in partialAlignments:
-                for tWord in target:
-                    updateValue = 0
+                for tIdx, tWord in enumerate(target):
+                    updateValue = 0.0
                     if tWord in partialAlignments[sWord]:
-                        updateValue = 1
+                        iValues.add(tIdx)
+                        updateValue = 1.0
                     stCounts[(sWord, tWord)] += updateValue
                     tCounts[tWord] += updateValue
+                    jiCounts[(sIdx, tIdx, len(target), len(source))] += updateValue
+                    iCounts[(tIdx, len(target), len(source))] += updateValue,
+                jValues.add(sIdx)
+                lValues.add(len(target))
+                mValues.add(len(source))
 
     # Calculate probability
-    for (sWord, tWord) in stCoOccurrenceCount:
-        try:
-            tProb[(sWord, tWord)] = stCounts[(sWord, tWord)] / tCounts[tWord]
-        except ZeroDivisionError:
-            pass
+    tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+    qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
 
-    return tProb
+    return tProb, qProb
 
 
-def interpolatedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext, supervisedTProb, lWeight):
+def interpolatedIBMModel1(stCoOccurrenceCount, bitext, supervisedTProb, lWeight):
     """
     Interpolated version of IBM Model1. It is the standard unsupervised IBM Model 1 but linearly interpolates
     with supervised translation probabilities during maximization step
@@ -57,39 +67,40 @@ def interpolatedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext,
     :return: translation probability, t(f|e)
     """
 
-    tProb = defaultdict(int)
-
     # Initialize tProb uniformly
-    for (source, target) in stCoOccurrenceCount:
-        tProb[(source, target)] = 1.0/len(stCoOccurrenceCount)
+    tProb = initializeTProbUniformly(stCoOccurrenceCount)
+    qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
-        stCounts = defaultdict(int)
-        tCounts = defaultdict(int)
+        stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Collect counts
         for (source, target) in bitext:
-            for sWord in source:
+            lValues.add(len(target))
+            mValues.add(len(source))
+            for sIdx, sWord in enumerate(source):
                 normalizer = 0
+                jValues.add(sIdx)
 
                 for tWord in target:
                     normalizer += tProb[(sWord, tWord)]
 
-                for tWord in target:
+                for tIdx, tWord in enumerate(target):
+                    iValues.add(tIdx)
                     updateValue = tProb[(sWord, tWord)]/normalizer
                     stCounts[(sWord, tWord)] += updateValue
                     tCounts[tWord] += updateValue
+                    jiCounts[(sIdx, tIdx, len(target), len(source))] += updateValue
+                    iCounts[(tIdx, len(target), len(source))] += updateValue
 
         # Calculate and interpolate probabilities
-        for (sWord, tWord) in stCoOccurrenceCount:
-            tProbST = stCounts[(sWord, tWord)] / tCounts[tWord]
-            supervisedTProbST = supervisedTProb[(sWord, tWord)]
-            tProb[(sWord, tWord)] = (lWeight * supervisedTProbST) + ((1 - lWeight) * tProbST)
+        tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
+        qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
 
-    return tProb
+    return tProb, qProb
 
 
-def unsupervisedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext):
+def unsupervisedIBMModel1(stCoOccurrenceCount, bitext):
     """
     Unsupervised version of IBM Model 1. In this the translation probability is only counted for
     the partial annotations of alignments that we have
@@ -100,32 +111,36 @@ def unsupervisedIBMModel1(sVocabCount, tVocabCount, stCoOccurrenceCount, bitext)
     :param partialAlignments: partial alignments from the partial annotations (source: [list of target words])
     :return: translation probability, t(f|e)
     """
-    tProb = defaultdict(int) #translation probability
+    # Initialize translation probability uniformly
+    tProb = initializeTProbUniformly(stCoOccurrenceCount)
 
-    # Uniform initialization of tProb
-    # TODO: Could try stCoOccurrenceCount
-    for (source, target) in stCoOccurrenceCount.iterkeys():
-        tProb[(source, target)] = 1.0/len(sVocabCount)
+    # Initialize alignment probability uniformly
+    qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
-        stCounts = defaultdict(int)
-        tCounts = defaultdict(int)
+        stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Collect counts
         for (source, target) in bitext:
-            for sWord in source:
+            lValues.add(len(target))
+            mValues.add(len(source))
+            for sIdx, sWord in enumerate(source):
                 normalizer = 0.0
+                jValues.add(sIdx)
 
                 for tWord in target:
                     normalizer += tProb[(sWord, tWord)]
 
-                for tWord in target:
+                for tIdx, tWord in enumerate(target):
+                    iValues.add(tIdx)
                     updateValue = tProb[(sWord, tWord)]/normalizer
                     stCounts[(sWord, tWord)] += updateValue
                     tCounts[tWord] += updateValue
+                    jiCounts[(sIdx, tIdx, len(target), len(source))] += updateValue
+                    iCounts[(tIdx, len(target), len(source))] += updateValue
 
         # Calculate probability
-        for (sWord, tWord) in stCoOccurrenceCount:
-            tProb[(sWord, tWord)] = stCounts[(sWord, tWord)] / tCounts[tWord]
+        tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+        qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
 
-    return tProb
+    return tProb, qProb
