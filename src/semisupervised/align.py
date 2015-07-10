@@ -16,7 +16,7 @@ from src.models.HMM import supervisedHMM
 from src.models.HMM_with_length_with_array_null import interpolatedBaumWelchP, findBestAlignmentsForAll_AER
 from src.unsupervised.HMM_with_length_with_array_null import baumWelchP
 from src.tools.evaluate import grade_align
-
+from src.tools.alignment import alignmentFromIBM1, alignmentFromIBM2
 
 def runIBMModel1(stCoOccurrenceCount, bitext, partialAlignments, interpolationWeight,
                  interpolate=True):
@@ -192,3 +192,7 @@ if __name__ == '__main__':
                                      opts.alignmentFile)
         grade_align(fData, eData, opts.goldAlignments, opts.alignmentFile, sys.stdout)
     else:
+        if opts.ibm2:
+            alignmentFromIBM2(bitextFE, tProb, qProb, opts.alignmentFile)
+        else:
+            alignmentFromIBM1(bitextFE, tProb, opts.alignmentFile)
