@@ -41,6 +41,7 @@ def findClosestVector(sIdx, sVector, tVectors, returnDict, neighbours):
     for tVector in tVectors:
         cosineDistance = cosine(sVector, tVector)
         cosineDistances.append(cosineDistance)
+    cosineDistances = np.array(cosineDistances)
     neighbourIndices = sorted(np.argpartition(cosineDistances, neighbours)[:neighbours])
     returnDict[sIdx] = neighbourIndices
 
