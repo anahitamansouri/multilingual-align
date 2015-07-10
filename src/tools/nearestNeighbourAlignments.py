@@ -28,20 +28,21 @@ def readVectors(fileName):
 def writeAlignment(fileName, sVocab, tVocab, nearestVectorsIdx):
     with open(fileName, 'w') as outFile:
         for idx, sWord in enumerate(sVocab):
-            tWord = tVocab[nearestVectorsIdx[idx]]
-            outFile.write('{}\t{}\n'.format(sWord, tWord))
+            nearestNeighbours = nearestVectorsIdx[idx]
+            for neighbour in nearestNeighbours:
+                tWord = tVocab[neighbour]
+                outFile.write('{}\t{}\n'.format(sWord, tWord))
 
 
-def findClosestVector(sIdx, sVector, tVectors, returnDict):
+def findClosestVector(sIdx, sVector, tVectors, returnDict, neighbours):
     print 'FIND CLOSEST VECTOR - {} - pid: {}'.format(sIdx, getpid())
-    smallestCosine = float("inf")
-    smallestCosineIdx = -1
-    for tIdx, tVector in enumerate(tVectors):
+
+    cosineDistances = []
+    for tVector in tVectors:
         cosineDistance = cosine(sVector, tVector)
-        if cosineDistance < smallestCosine:
-            smallestCosine = cosineDistance
-            smallestCosineIdx = tIdx
-    returnDict[sIdx] = smallestCosineIdx
+        cosineDistances.append(cosineDistance)
+    neighbourIndices = sorted(np.argpartition(cosineDistances, neighbours)[:neighbours])
+    returnDict[sIdx] = neighbourIndices
 
 
 def canStartMoreJobs(jobs):
@@ -64,6 +65,7 @@ if __name__ == '__main__':
     optParser = argparse.ArgumentParser()
     optParser.add_argument("-sv", "--sourceVectors", dest="sourceVectors", help="Source vectors file (example: english)")
     optParser.add_argument("-tv", "--targetVectors", dest="targetVectors", help="Target vectors file (example: chinese)")
+    optParser.add_argument("-k", "--neighbours", dest="neighbours", help="Number of nearest neighbours")
     optParser.add_argument("-o", "--output", dest="output", help="Output alignment file")
     args = optParser.parse_args()
 
@@ -79,7 +81,8 @@ if __name__ == '__main__':
     for sIdx, sVector in enumerate(sVectors):
         print '\tCalculating Cosine for: {} - {}'.format(sIdx, sVocab[sIdx])
 
-        proc = multiprocessing.Process(target=findClosestVector, args=(sIdx, sVector, tVectors, nearestVectorsIdx))
+        proc = multiprocessing.Process(target=findClosestVector, args=(sIdx, sVector, tVectors, nearestVectorsIdx,
+                                                                       args.neighbours))
         jobs.append(proc)
         proc.start()
         while True:
@@ -87,7 +90,7 @@ if __name__ == '__main__':
                 break
             else:
                 print "$$$$ WAITING FOR PROCESSOR SPACE $$$$"
-                time.sleep(1)
+                time.sleep(0.1)
 
     for proc in jobs:
         proc.join()
