@@ -65,9 +65,14 @@ if __name__ == '__main__':
     optParser = argparse.ArgumentParser()
     optParser.add_argument("-sv", "--sourceVectors", dest="sourceVectors", help="Source vectors file (example: english)")
     optParser.add_argument("-tv", "--targetVectors", dest="targetVectors", help="Target vectors file (example: chinese)")
-    optParser.add_argument("-k", "--neighbours", dest="neighbours", help="Number of nearest neighbours")
+    optParser.add_argument("-k", "--neighbours", dest="neighbours", type=int, default=1,
+                           help="Number of nearest neighbours (default=1)")
     optParser.add_argument("-o", "--output", dest="output", help="Output alignment file")
     args = optParser.parse_args()
+
+    print 'SOURCE VECTORS: {}\nTARGET VECTORS: {}\nNEIGHBOURS: {}\nOUTPUT: {}'.format(args.sourceVectors,
+                                                                                      args.targetVectors,
+                                                                                      args.neighbours, args.output)
 
     print "#"*10+"Reading Vectors"+"#"*10
     sVectors, sVocab = readVectors(args.sourceVectors)
