@@ -32,13 +32,51 @@ def alignmentFromIBM1(bitext, tProb, alignmentFile, numLines=None):
             allAlignments.append(alignments)
 
             for (sWordIdx, argmax) in alignments:
-                sys.stdout.write('%i-%i' % (sWordIdx+1, argmax+1))
-                outFile.write('%i-%i' % (sWordIdx+1, argmax+1))
+                sys.stdout.write('%i-%i ' % (sWordIdx+1, argmax+1))
+                outFile.write('%i-%i ' % (sWordIdx+1, argmax+1))
             sys.stdout.write('\n')
             outFile.write('\n')
             if numLines and (n == numLines - 1):
                 break
         return allAlignments
+
+
+def alignmentFromIBM2(bitext, tProb, qProb, alignmentFile, numLines=None):
+    """
+    For each sentence pair, find the alignment for each source word and target word, and write to file
+    :param bitext: the parallel sentences
+    :param tProb: translation probabilities
+    :param qProb: alignment probabilities
+    :param alignmentFile: file to which alignments should be written
+    :param numLines: number of lines for which alignments should be written and printed
+    :return: Alignments for all sentence pairs
+    """
+    with open(alignmentFile, 'w') as outFile:
+        allAlignments = []
+        for n, (source, target) in bitext:
+            alignments = set()
+
+            for j, sWord in enumerate(source):
+                maxProb = 0.0
+                argmax = -1
+
+                for i, tWord in enumerate(target):
+                    prob = tProb[(sWord, tWord)] * qProb[(j, i, len(target), len(source))]
+                    if prob > maxProb:
+                        maxProb = prob
+                        argmax = i
+                alignments.add((j, argmax))
+
+            allAlignments.append(alignments)
+
+            for (sWordIdx, argmax) in alignments:
+                outFile.write('%i-%i ' % (sWordIdx+1, argmax+1))
+            outFile.write('\n')
+
+            if numLines and (n == numLines - 1):
+                break
+
+    return allAlignments
 
 
 def intersectAlignmentModels(bitext, probSourceTarget, probTargetSource, alignmentFile=None, numLines=None):
@@ -87,9 +125,9 @@ def intersectAlignmentModels(bitext, probSourceTarget, probTargetSource, alignme
         for sWordIdx, argmax in intersect:
             if alignmentFile:
                 # TODO: shouldn't it be sWordIdx+1, argmax+1
-                outFile.write('%i-%i' % (sWordIdx, argmax))
+                outFile.write('%i-%i ' % (sWordIdx+1, argmax+1))
             else:
-                sys.stdout.write('%i-%i' % (sWordIdx, argmax))
+                sys.stdout.write('%i-%i'  % (sWordIdx+1, argmax+1))
         if alignmentFile:
             outFile.write('\n')
         else:
