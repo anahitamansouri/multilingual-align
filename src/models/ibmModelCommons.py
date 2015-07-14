@@ -63,7 +63,7 @@ def initializeTProbUniformly(sourceCounts, stCoOccurrenceCount):
 
 
 def initializeQProbUniformly(bitext):
-    print '>>>> Initializing TProb Uniformly'
+    print '>>>> Initializing QProb Uniformly'
     qProb = defaultdict(float)
 
     lValues = set()
@@ -72,7 +72,9 @@ def initializeQProbUniformly(bitext):
     iValues = set()
 
     # Initialize qProb uniformly
-    for source, target in bitext:
+    for n, (source, target) in enumerate(bitext):
+        if n % 1000 == 0:
+            print '>>>> >>>> {}'.format(n)
         lValues.add(len(target))
         mValues.add(len(source))
         for sIdx, sWord in enumerate(source):
@@ -80,7 +82,8 @@ def initializeQProbUniformly(bitext):
             for tIdx, tWord in enumerate(target):
                 jValues.add(tIdx)
 
-    uniformVal = max(len(iValues), len(lValues), len(mValues))
+    #uniformVal = max(len(iValues), len(lValues), len(mValues))
+    uniformVal = len(jValues)
     for j in jValues:
         for i in iValues:
             for l in lValues:
