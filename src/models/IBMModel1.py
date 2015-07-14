@@ -173,6 +173,7 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> IBM Model 1 - EM Iteration " + str(emIter)
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Collect counts

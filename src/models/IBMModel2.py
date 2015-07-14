@@ -129,7 +129,8 @@ def parallelInterpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
     _, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
-
+        print ">>>> IBM Model 1 - EM Iteration " + str(emIter)
+        
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Calculate counts
