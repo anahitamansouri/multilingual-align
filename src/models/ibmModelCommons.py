@@ -50,10 +50,10 @@ def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jValues, iValues, lV
     return qProb
 
 
-def initializeTProbUniformly(stCoOccurrenceCount):
+def initializeTProbUniformly(sourceCounts, stCoOccurrenceCount):
     tProb = defaultdict(float)
     for (source, target) in stCoOccurrenceCount:
-        tProb[(source, target)] = 1.0/len(stCoOccurrenceCount)
+        tProb[(source, target)] = 1.0/len(sourceCounts)
     return tProb
 
 
@@ -69,10 +69,10 @@ def initializeQProbUniformly(bitext):
     for source, target in bitext:
         lValues.add(len(target))
         mValues.add(len(source))
-        for sIdx, sWord in source:
-            jValues.add(sIdx)
-            for tIdx, tWord in target:
-                iValues.add(tIdx)
+        for sIdx, sWord in enumerate(source):
+            iValues.add(sIdx)
+            for tIdx, tWord in enumerate(target):
+                jValues.add(tIdx)
 
     uniformVal = max(len(iValues), len(lValues), len(mValues))
     for j in jValues:
