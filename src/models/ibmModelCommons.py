@@ -83,6 +83,8 @@ def initializeQProbUniformly(bitext):
                 jValues.add(tIdx)
 
     #uniformVal = max(len(iValues), len(lValues), len(mValues))
+    print 'Length - jValues: {}, iValues: {}, lValues: {}, mValues: {}'.format(len(jValues), len(iValues),
+                                                                               len(lValues), len(mValues))
     uniformVal = len(jValues)
     for j in jValues:
         for i in iValues:
