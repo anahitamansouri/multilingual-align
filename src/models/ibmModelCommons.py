@@ -4,6 +4,7 @@ from collections import defaultdict
 
 
 def maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb):
+    print '>>>> Maximizing TProb'
     for (sWord, tWord) in stCoOccurrenceCount:
         try:
             tProb[(sWord, tWord)] = stCounts[(sWord, tWord)] / tCounts[tWord]
@@ -13,6 +14,7 @@ def maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb):
 
 
 def maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight):
+    print '>>>> Maximizing Interpolated TProb'
     for sWord, tWord in stCoOccurrenceCount:
         try:
             tProbST = stCounts[(sWord, tWord)] / tCounts[tWord]
@@ -24,6 +26,7 @@ def maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb,
 
 
 def maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues):
+    print '>>>> Maximizing QProb'
     for j in jValues:
         for i in iValues:
             for l in lValues:
@@ -37,6 +40,7 @@ def maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValu
 
 def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues, supervisedQProb,
                                   lWeight):
+    print '>>>> Maximizing Interpolated QProb'
     for j in jValues:
         for i in iValues:
             for l in lValues:
@@ -51,6 +55,7 @@ def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jValues, iValues, lV
 
 
 def initializeTProbUniformly(sourceCounts, stCoOccurrenceCount):
+    print '>>>> Initializing TProb Uniformly'
     tProb = defaultdict(float)
     for (source, target) in stCoOccurrenceCount:
         tProb[(source, target)] = 1.0/len(sourceCounts)
@@ -58,6 +63,7 @@ def initializeTProbUniformly(sourceCounts, stCoOccurrenceCount):
 
 
 def initializeQProbUniformly(bitext):
+    print '>>>> Initializing TProb Uniformly'
     qProb = defaultdict(float)
 
     lValues = set()
@@ -85,6 +91,7 @@ def initializeQProbUniformly(bitext):
 
 
 def initializeCounts():
+    print '>>>> Initializing Counts'
     stCounts = defaultdict(float)
     tCounts = defaultdict(float)
     jiCounts = defaultdict(float)

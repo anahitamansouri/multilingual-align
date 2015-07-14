@@ -30,7 +30,7 @@ def runIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, partialAlignments, i
     :param interpolate: If interpolation should be performed or should use the unsupervised IBM Model1
     :return: translation probability, t(f|e)
     """
-    print "EXECUTING IBM MODEL 1"
+    print "\nEXECUTING IBM MODEL 1"
     startTime = time.time()
 
     if interpolate:
@@ -59,7 +59,7 @@ def runIBMModel2(sourceCounts, stCoOccurrenceCount, bitext, ibm1TProb, ibm1QProb
     :return: translation probability, t(f|e)
     """
     startTime = time.time()
-    print "EXECUTING IBM MODEL 2"
+    print "\nEXECUTING IBM MODEL 2"
     if interpolate:
         tProb, qProb = supervisedIBMModel2(stCoOccurrenceCount, bitext, partialAlignments)
         tProb, qProb = interpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QProb, tProb, qProb,
@@ -76,7 +76,7 @@ def runIBMModel2(sourceCounts, stCoOccurrenceCount, bitext, ibm1TProb, ibm1QProb
 def runHMM(sourceVocabCount, stCoOccurrenceCount, bitext, ibmTProb, partialAlignments, interpolationWeight,
            interpolate=True):
     startTime = time.time()
-    print "EXECUTING HMM"
+    print "\nEXECUTING HMM"
 
     if interpolate:
         transitionMatrix, emissionMatrix = supervisedHMM(stCoOccurrenceCount, bitext, partialAlignments)
