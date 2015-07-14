@@ -26,10 +26,7 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
 
     stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
-    lValues = set()
-    mValues = set()
-    jValues = set()
-    iValues = set()
+    jilmCombinations = []
 
     # Collect counts
     for (source, target) in bitext:
@@ -38,24 +35,23 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
                 for tIdx, tWord in enumerate(target):
                     updateValue = 0.0
                     if tWord in partialAlignments[sWord]:
-                        jValues.add(tIdx)
+                        jilm = (tIdx, sIdx, len(target), len(source))
+                        ilm = (sIdx, len(target), len(source))
+                        jilmCombinations.append((jilm, ilm))
                         updateValue = 1.0
                     stCounts[(sWord, tWord)] += updateValue
                     tCounts[tWord] += updateValue
                     jiCounts[(tIdx, sIdx, len(target), len(source))] += updateValue
                     iCounts[(sIdx, len(target), len(source))] += updateValue
-                iValues.add(sIdx)
-                lValues.add(len(target))
-                mValues.add(len(source))
 
     # Calculate probability
     tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
-    qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
+    qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
 
 
-def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedTProb, lWeight):
+def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedTProb, supervisedQProb, lWeight):
     """
     Interpolated version of IBM Model1. It is the standard unsupervised IBM Model 1 but linearly interpolates
     with supervised translation probabilities during maximization step
@@ -71,7 +67,7 @@ def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedT
 
     # Initialize tProb uniformly
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
-    qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
+    qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
 
@@ -80,7 +76,7 @@ def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedT
 
         # Calculate and interpolate probabilities
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
-        qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
+        qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight)
 
     return tProb, qProb
 
@@ -100,7 +96,7 @@ def unsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
 
     # Initialize alignment probability uniformly
-    qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
+    qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
 
@@ -109,12 +105,12 @@ def unsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
 
         # Calculate probability
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
-        qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
+        qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
 
 
-def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedTProb, lWeight):
+def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedTProb, supervisedQProb, lWeight):
     """
     Interpolated version of IBM Model1. It is the standard unsupervised IBM Model 1 but linearly interpolates
     with supervised translation probabilities during maximization step
@@ -130,7 +126,7 @@ def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, sup
 
     # Initialize tProb uniformly
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
-    qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
+    qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
@@ -160,7 +156,7 @@ def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, sup
 
         # Calculate and interpolate probabilities
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
-        qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
+        qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight)
 
     return tProb, qProb
 

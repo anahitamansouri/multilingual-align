@@ -98,7 +98,7 @@ def initializeQProbUniformly(bitext):
                 jValues.add(tIdx)
                 jilm = (tIdx, sIdx, len(target), len(source))
                 ilm = (sIdx, len(target), len(source))
-                jilmCombinations.append(jilm, ilm)
+                jilmCombinations.append((jilm, ilm))
 
     #uniformVal = max(len(iValues), len(lValues), len(mValues))
     uniformVal = len(jValues)
