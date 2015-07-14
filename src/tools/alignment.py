@@ -32,9 +32,9 @@ def alignmentFromIBM1(bitext, tProb, alignmentFile, numLines=None):
             allAlignments.append(alignments)
 
             for (sWordIdx, argmax) in alignments:
-                sys.stdout.write('%i-%i ' % (sWordIdx+1, argmax+1))
+                #sys.stdout.write('%i-%i ' % (sWordIdx+1, argmax+1))
                 outFile.write('%i-%i ' % (sWordIdx+1, argmax+1))
-            sys.stdout.write('\n')
+            #sys.stdout.write('\n')
             outFile.write('\n')
             if numLines and (n == numLines - 1):
                 break
@@ -53,7 +53,7 @@ def alignmentFromIBM2(bitext, tProb, qProb, alignmentFile, numLines=None):
     """
     with open(alignmentFile, 'w') as outFile:
         allAlignments = []
-        for n, (source, target) in bitext:
+        for n, (source, target) in enumerate(bitext):
             alignments = set()
 
             for j, sWord in enumerate(source):
