@@ -170,13 +170,14 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
 
     # Initialize alignment probability uniformly
-    qProb, jValues, iValues, lValues, mValues = initializeQProbUniformly(bitext)
+    qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
         print ">>>> IBM Model 1 - EM Iteration " + str(emIter)
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Collect counts
+        print '>>>> >>>> Expectation Step'
         outputQueue = multiprocessing.Queue()
         numberOfProcessAllowed = multiprocessing.cpu_count()
         chunkSize = int(math.ceil(len(bitext) / float(numberOfProcessAllowed)))
@@ -199,8 +200,10 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
             proc.join()
 
         # Calculate probability
+        print '>>>> >>>> Maximizing tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
-        qProb = maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues)
+        print '>>>> >>>> Maximizing qProb'
+        qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
 

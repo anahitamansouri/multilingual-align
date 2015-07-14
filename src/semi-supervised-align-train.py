@@ -150,7 +150,18 @@ if __name__ == '__main__':
 
     # Read data from fData and eData and store them as bitextFE and bitextEF
     with open(fData) as fFile, open(eData) as eFile:
-        bitextFE = [[sentence.strip().split() for sentence in pair] for pair in zip(fFile, eFile)[:opts.num_sents]]
+        bitextFE = []
+        for pair in zip(fFile, eFile)[:opts.num_sents]:
+            pairs = []
+            skipSentence = False
+            for sentence in pair:
+                sentenceSplit = sentence.strip().split()
+                pairs.append(sentenceSplit)
+                if len(sentenceSplit) > 150:
+                    skipSentence = True
+            if not skipSentence:
+                bitextFE.append(pairs)
+
 
     # Initialize variables (count variables for gathering vocab counts, co-occurrence counts)
     fCount = defaultdict(int)

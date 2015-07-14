@@ -25,32 +25,51 @@ def maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb,
     return tProb
 
 
-def maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues):
-    print '>>>> Maximizing QProb'
-    for j in jValues:
-        for i in iValues:
-            for l in lValues:
-                for m in mValues:
-                    try:
-                        qProb[(j, i, l, m)] = jiCounts[(j, i, l, m)] / iCounts[(i, l, m)]
-                    except ZeroDivisionError:
-                        pass
+#def maximizationQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues):
+#    print '>>>> Maximizing QProb'
+#    for j in jValues:
+#        for i in iValues:
+#            for l in lValues:
+#                for m in mValues:
+#                    try:
+#                        qProb[(j, i, l, m)] = jiCounts[(j, i, l, m)] / iCounts[(i, l, m)]
+#                    except ZeroDivisionError:
+#                        qProb[(j, i, l, m)] = 0.0
+#    return qProb
+
+def maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations):
+    for jilm, ilm in jilmCombinations:
+        try:
+            qProb[jilm] = jiCounts[jilm] / iCounts[ilm]
+        except ZeroDivisionError:
+            qProb[jilm] = 0.0
     return qProb
 
 
-def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues, supervisedQProb,
-                                  lWeight):
-    print '>>>> Maximizing Interpolated QProb'
-    for j in jValues:
-        for i in iValues:
-            for l in lValues:
-                for m in mValues:
-                    try:
-                        qProbJILM = jiCounts[(j, i, l, m)] / iCounts[(i, l, m)]
-                    except ZeroDivisionError:
-                        qProbJILM = 0.0
-                    supervisedQProbJILM = supervisedQProb[(j, i, l, m)]
-                    qProb[(j, i, l, m)] = (lWeight * supervisedQProbJILM) + ((1 - lWeight) * qProbJILM)
+#def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jValues, iValues, lValues, mValues, supervisedQProb,
+#                                  lWeight):
+#    print '>>>> Maximizing Interpolated QProb'
+#    for j in jValues:
+#        for i in iValues:
+#            for l in lValues:
+#                for m in mValues:
+#                    try:
+#                        qProbJILM = jiCounts[(j, i, l, m)] / iCounts[(i, l, m)]
+#                    except ZeroDivisionError:
+#                        qProbJILM = 0.0
+#                    supervisedQProbJILM = supervisedQProb[(j, i, l, m)]
+#                    qProb[(j, i, l, m)] = (lWeight * supervisedQProbJILM) + ((1 - lWeight) * qProbJILM)
+#    return qProb
+
+
+def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight):
+    for jilm, ilm in jilmCombinations:
+        try:
+            qProbJILM = jiCounts[jilm] / iCounts[ilm]
+        except ZeroDivisionError:
+            qProb[jilm] = 0.0
+        supervisedQProbJILM = supervisedQProb[jilm]
+        qProb[jilm] = (lWeight * supervisedQProbJILM) + ((1 - lWeight) * qProbJILM)
     return qProb
 
 
@@ -66,37 +85,30 @@ def initializeQProbUniformly(bitext):
     print '>>>> Initializing QProb Uniformly'
     qProb = defaultdict(float)
 
-    lValues = set()
-    mValues = set()
     jValues = set()
-    iValues = set()
+
+    jilmCombinations = []
 
     # Initialize qProb uniformly
     for n, (source, target) in enumerate(bitext):
         if n % 1000 == 0:
             print '>>>> >>>> {}'.format(n)
-        lValues.add(len(target))
-        mValues.add(len(source))
         for sIdx, sWord in enumerate(source):
-            iValues.add(sIdx)
             for tIdx, tWord in enumerate(target):
                 jValues.add(tIdx)
+                jilm = (tIdx, sIdx, len(target), len(source))
+                ilm = (sIdx, len(target), len(source))
+                jilmCombinations.append(jilm, ilm)
 
     #uniformVal = max(len(iValues), len(lValues), len(mValues))
-    print 'Length - jValues: {}, iValues: {}, lValues: {}, mValues: {}'.format(len(jValues), len(iValues),
-                                                                               len(lValues), len(mValues))
     uniformVal = len(jValues)
-    for j in jValues:
-        for i in iValues:
-            for l in lValues:
-                for m in mValues:
-                    qProb[(j, i, l, m)] = 1.0/uniformVal
+    for jilm, ilm in jilmCombinations:
+        qProb[jilm] = 1.0/uniformVal
 
-    return qProb, jValues, iValues, lValues, mValues
+    return qProb, jilmCombinations
 
 
 def initializeCounts():
-    print '>>>> Initializing Counts'
     stCounts = defaultdict(float)
     tCounts = defaultdict(float)
     jiCounts = defaultdict(float)
