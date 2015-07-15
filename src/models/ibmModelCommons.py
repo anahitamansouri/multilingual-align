@@ -38,9 +38,9 @@ def maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb,
 #    return qProb
 
 def maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations):
-    for jilm, ilm in jilmCombinations:
+    for jilm in jilmCombinations:
         try:
-            qProb[jilm] = jiCounts[jilm] / iCounts[ilm]
+            qProb[jilm] = jiCounts[jilm] / iCounts[jilm[1:]]
         except ZeroDivisionError:
             qProb[jilm] = 0.0
     return qProb
@@ -63,11 +63,11 @@ def maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations):
 
 
 def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight):
-    for jilm, ilm in jilmCombinations:
+    for jilm in jilmCombinations:
         try:
-            qProbJILM = jiCounts[jilm] / iCounts[ilm]
+            qProbJILM = jiCounts[jilm] / iCounts[jilm[1:]]
         except ZeroDivisionError:
-            qProb[jilm] = 0.0
+            qProbJILM = 0.0
         supervisedQProbJILM = supervisedQProb[jilm]
         qProb[jilm] = (lWeight * supervisedQProbJILM) + ((1 - lWeight) * qProbJILM)
     return qProb
@@ -87,7 +87,7 @@ def initializeQProbUniformly(bitext):
 
     jValues = set()
 
-    jilmCombinations = []
+    jilmCombinations = set()
 
     # Initialize qProb uniformly
     for n, (source, target) in enumerate(bitext):
@@ -97,12 +97,11 @@ def initializeQProbUniformly(bitext):
             for tIdx, tWord in enumerate(target):
                 jValues.add(tIdx)
                 jilm = (tIdx, sIdx, len(target), len(source))
-                ilm = (sIdx, len(target), len(source))
-                jilmCombinations.append((jilm, ilm))
+                #ilm = (sIdx, len(target), len(source))
+                jilmCombinations.add(jilm)
 
-    #uniformVal = max(len(iValues), len(lValues), len(mValues))
     uniformVal = len(jValues)
-    for jilm, ilm in jilmCombinations:
+    for jilm in jilmCombinations:
         qProb[jilm] = 1.0/uniformVal
 
     return qProb, jilmCombinations

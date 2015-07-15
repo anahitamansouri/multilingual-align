@@ -16,7 +16,7 @@ def supervisedIBMModel2(stCoOccurrenceCount, bitext, partialAlignments):
 
     stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
-    jilmCombinations = []
+    jilmCombinations = set()
 
     for source, target in bitext:
         for sIdx, sWord in enumerate(source):
@@ -25,8 +25,8 @@ def supervisedIBMModel2(stCoOccurrenceCount, bitext, partialAlignments):
                     updateValue = 0.0
                     if tWord in stCoOccurrenceCount[sWord]:
                         jilm = (tIdx, sIdx, len(target), len(source))
-                        ilm = (sIdx, len(target), len(source))
-                        jilmCombinations.append((jilm, ilm))
+                        # ilm = (sIdx, len(target), len(source))
+                        jilmCombinations.add(jilm)
                         updateValue = 1.0
                     stCounts[(sWord, tWord)] += updateValue # for using later in t(f|e) normalization
                     tCounts[tWord] += updateValue # for using later in t(f|e) normalization
