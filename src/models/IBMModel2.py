@@ -104,6 +104,8 @@ def parallelUnsupervisedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
 
         for procNum in range(numberOfProcessAllowed):
             partialResult = outputQueue.get()
+            if isinstance(partialResult, Exception):
+                raise partialResult
             stCounts = _mergeCounts(partialResult['stCounts'], stCounts)
             tCounts = _mergeCounts(partialResult['tCounts'], tCounts)
             jiCounts = _mergeCounts(partialResult['jiCounts'], jiCounts)
@@ -166,27 +168,32 @@ def parallelInterpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
 
 def _expectation(bitext, tProb, qProb):
     stCounts, tCounts, jiCounts, iCounts = initializeCounts()
+    try:
+        for source, target in bitext:
+            for sIdx, sWord in enumerate(source):
+                normalizer = 0.0
 
-    for source, target in bitext:
-        for sIdx, sWord in enumerate(source):
-            normalizer = 0.0
+                for tIdx, tWord in enumerate(target):
+                    normalizer += qProb[(tIdx, sIdx, len(target), len(source))] * tProb[(sWord, tWord)]
 
-            for tIdx, tWord in enumerate(target):
-                normalizer += qProb[(tIdx, sIdx, len(target), len(source))] * tProb[(sWord, tWord)]
-
-            for tIdx, tWord in enumerate(target):
-                updateValue = (qProb[(tIdx, sIdx, len(target), len(source))] * tProb[(sWord, tWord)]) / normalizer
-                stCounts[(sWord, tWord)] += updateValue
-                tCounts[tWord] += updateValue
-                jiCounts[(tIdx, sIdx, len(target), len(source))] += updateValue
-                iCounts[(sIdx, len(target), len(source))] += updateValue
+                for tIdx, tWord in enumerate(target):
+                    updateValue = (qProb[(tIdx, sIdx, len(target), len(source))] * tProb[(sWord, tWord)]) / normalizer
+                    stCounts[(sWord, tWord)] += updateValue
+                    tCounts[tWord] += updateValue
+                    jiCounts[(tIdx, sIdx, len(target), len(source))] += updateValue
+                    iCounts[(sIdx, len(target), len(source))] += updateValue
+    except Exception as e:
+        raise e
 
     return stCounts, tCounts, jiCounts, iCounts
 
 
 def _parallelExpectation(bitext, tProb, qProb, outputQueue):
-    stCounts, tCounts, jiCounts, iCounts = _expectation(bitext, tProb, qProb)
-    outputQueue.put({'stCounts': stCounts, 'tCounts': tCounts, 'jiCounts': jiCounts, 'iCounts': iCounts})
+    try:
+        stCounts, tCounts, jiCounts, iCounts = _expectation(bitext, tProb, qProb)
+        outputQueue.put({'stCounts': stCounts, 'tCounts': tCounts, 'jiCounts': jiCounts, 'iCounts': iCounts})
+    except Exception as e:
+        outputQueue.put(e)
 
 
 def _mergeCounts(partialCountDict, countDict):
