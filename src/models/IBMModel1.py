@@ -26,7 +26,6 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
 
     stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
-    jilmCombinations = set()
 
     print ">>>> Supervised IBM Model 1"
 
@@ -38,9 +37,6 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
                 for tIdx, tWord in enumerate(target):
                     updateValue = 0.0
                     if tWord in partialAlignments[sWord]:
-                        jilm = (tIdx, sIdx, len(target), len(source))
-                        # ilm = (sIdx, len(target), len(source))
-                        jilmCombinations.add(jilm)
                         updateValue = 1.0
                     stCounts[(sWord, tWord)] += updateValue
                     tCounts[tWord] += updateValue
@@ -51,7 +47,7 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
     print '>>>> >>>> Maximization Step: tProb'
     tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
     print '>>>> >>>> Maximization Step: qProb'
-    qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
+    qProb = maximizationQProb(qProb, jiCounts, iCounts)
 
     return tProb, qProb
 
@@ -72,7 +68,7 @@ def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedT
 
     # Initialize tProb uniformly
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
-    qProb, jilmCombinations = initializeQProbUniformly(bitext)
+    qProb = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
         print ">>>> Interpolated IBM Model 1 - EM Iteration " + str(emIter)
@@ -85,7 +81,7 @@ def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedT
         print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
         print '>>>> >>>> Maximization Step: qProb'
-        qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight)
+        qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, supervisedQProb, lWeight)
 
     return tProb, qProb
 
@@ -105,7 +101,7 @@ def unsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
 
     # Initialize alignment probability uniformly
-    qProb, jilmCombinations = initializeQProbUniformly(bitext)
+    qProb = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
         print ">>>> Unsupervised IBM Model 1 - EM Iteration " + str(emIter)
@@ -118,7 +114,7 @@ def unsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
         print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
         print '>>>> >>>> Maximization Step: qProb'
-        qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
+        qProb = maximizationQProb(qProb, jiCounts, iCounts)
 
     return tProb, qProb
 
@@ -139,7 +135,7 @@ def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, sup
 
     # Initialize tProb uniformly
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
-    qProb, jilmCombinations = initializeQProbUniformly(bitext)
+    qProb = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
         print ">>>> Interpolated IBM Model 1 - EM Iteration " + str(emIter)
@@ -173,7 +169,7 @@ def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, sup
         print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
         print '>>>> >>>> Maximization Step: qProb'
-        qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight)
+        qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, supervisedQProb, lWeight)
 
     return tProb, qProb
 
@@ -183,7 +179,7 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     tProb = initializeTProbUniformly(sourceCounts, stCoOccurrenceCount)
 
     # Initialize alignment probability uniformly
-    qProb, jilmCombinations = initializeQProbUniformly(bitext)
+    qProb = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
         print ">>>> Unsupervised IBM Model 1 - EM Iteration " + str(emIter)
@@ -216,7 +212,7 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
         print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
         print '>>>> >>>> Maximization Step: qProb'
-        qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
+        qProb = maximizationQProb(qProb, jiCounts, iCounts)
 
     return tProb, qProb
 
