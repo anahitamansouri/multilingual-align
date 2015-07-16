@@ -7,6 +7,8 @@ from ibmModelCommons import initializeCounts, maximizationQProb, maximizationTPr
     maximizationInterpolatedQProb, initializeQProbUniformly
 import multiprocessing
 import math
+import psutil
+import os
 
 
 def supervisedIBMModel2(stCoOccurrenceCount, bitext, partialAlignments):
@@ -92,7 +94,7 @@ def parallelUnsupervisedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
         # Calculate counts
         print '>>>> >>>> Expectation Step'
         outputQueue = multiprocessing.Queue()
-        numberOfProcessAllowed = int(math.floor(multiprocessing.cpu_count() * 0.95))
+        numberOfProcessAllowed = getNumberOfAllowedProcess()
         chunkSize = int(math.ceil(len(bitext) / float(numberOfProcessAllowed)))
         procs = []
 
@@ -136,7 +138,7 @@ def parallelInterpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
         # Calculate counts
         print '>>>> >>>> Expectation Step'
         outputQueue = multiprocessing.Queue()
-        numberOfProcessAllowed = int(math.floor(multiprocessing.cpu_count() * 0.95))
+        numberOfProcessAllowed = getNumberOfAllowedProcess()
         chunkSize = int(math.ceil(len(bitext) / float(numberOfProcessAllowed)))
         procs = []
 
@@ -200,3 +202,18 @@ def _mergeCounts(partialCountDict, countDict):
     for key, value in partialCountDict.iteritems():
         countDict[key] += value
     return countDict
+
+
+def getNumberOfAllowedProcess():
+    currentProcess = psutil.Process(os.getpid())
+    memoryPercent = currentProcess.get_memory_percent() + 3.0 # added 3.0% to be safe
+    allowedProcesses = int(math.floor(95.0 / memoryPercent)) # allow max 95% ram usage
+    processorsAvailable = multiprocessing.cpu_count()
+
+    if allowedProcesses <= processorsAvailable:
+        numProcessesAllowed = allowedProcesses
+    else:
+        numProcessesAllowed = processorsAvailable
+
+    print '###### ONLY ALLOWING {} PROCESSES ######'.format(numProcessesAllowed)
+    return int(numProcessesAllowed)

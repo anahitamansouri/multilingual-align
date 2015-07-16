@@ -8,7 +8,7 @@ def maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb):
         try:
             tProb[(sWord, tWord)] = stCounts[(sWord, tWord)] / tCounts[tWord]
         except ZeroDivisionError:
-            pass
+            tProb[(sWord, tWord)] = 0.0
     return tProb
 
 
