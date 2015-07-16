@@ -35,8 +35,8 @@ def maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb,
 #                        qProb[(j, i, l, m)] = 0.0
 #    return qProb
 
-def maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations):
-    for jilm in jilmCombinations:
+def maximizationQProb(qProb, jiCounts, iCounts):
+    for jilm in jiCounts.iterkeys():
         try:
             qProb[jilm] = jiCounts[jilm] / iCounts[jilm[1:]]
         except ZeroDivisionError:
@@ -60,8 +60,8 @@ def maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations):
 #    return qProb
 
 
-def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight):
-    for jilm in jilmCombinations:
+def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, supervisedQProb, lWeight):
+    for jilm in jiCounts.iterkeys():
         try:
             qProbJILM = jiCounts[jilm] / iCounts[jilm[1:]]
         except ZeroDivisionError:
@@ -100,7 +100,7 @@ def initializeQProbUniformly(bitext):
     for jilm in jilmCombinations:
         qProb[jilm] = 1.0/uniformVal
 
-    return qProb, jilmCombinations
+    return qProb
 
 
 def initializeCounts():
