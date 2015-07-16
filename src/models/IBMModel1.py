@@ -28,7 +28,10 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
 
     jilmCombinations = set()
 
+    print ">>>> Supervised IBM Model 1"
+
     # Collect counts
+    print '>>>> >>>> Expectation Step'
     for (source, target) in bitext:
         for sIdx, sWord in enumerate(source):
             if sWord in partialAlignments:
@@ -45,7 +48,9 @@ def supervisedIBMModel1(stCoOccurrenceCount, bitext, partialAlignments):
                     iCounts[(sIdx, len(target), len(source))] += updateValue
 
     # Calculate probability
+    print '>>>> >>>> Maximization Step: tProb'
     tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+    print '>>>> >>>> Maximization Step: qProb'
     qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
@@ -70,12 +75,16 @@ def interpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, supervisedT
     qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> Interpolated IBM Model 1 - EM Iteration " + str(emIter)
 
         # Collect counts
+        print '>>>> >>>> Expectation Step'
         stCounts, tCounts, jiCounts, iCounts = _expectation(bitext, tProb)
 
         # Calculate and interpolate probabilities
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight)
 
     return tProb, qProb
@@ -99,12 +108,16 @@ def unsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> Unsupervised IBM Model 1 - EM Iteration " + str(emIter)
 
         # Calculate Counts
+        print '>>>> >>>> Expectation Step'
         stCounts, tCounts, jiCounts, iCounts = _expectation(bitext, tProb)
 
         # Calculate probability
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
@@ -129,9 +142,11 @@ def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, sup
     qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> Interpolated IBM Model 1 - EM Iteration " + str(emIter)
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Collect counts
+        print '>>>> >>>> Expectation Step'
         outputQueue = multiprocessing.Queue()
         numberOfProcessAllowed = multiprocessing.cpu_count()
         chunkSize = int(math.ceil(len(bitext) / float(numberOfProcessAllowed)))
@@ -155,7 +170,9 @@ def parallelInterpolatedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext, sup
             proc.join()
 
         # Calculate and interpolate probabilities
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedQProb, lWeight)
 
     return tProb, qProb
@@ -169,7 +186,7 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
     qProb, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
-        print ">>>> IBM Model 1 - EM Iteration " + str(emIter)
+        print ">>>> Unsupervised IBM Model 1 - EM Iteration " + str(emIter)
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Collect counts
@@ -196,9 +213,9 @@ def parallelUnsupervisedIBMModel1(sourceCounts, stCoOccurrenceCount, bitext):
             proc.join()
 
         # Calculate probability
-        print '>>>> >>>> Maximizing tProb'
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
-        print '>>>> >>>> Maximizing qProb'
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb

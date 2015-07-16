@@ -18,6 +18,7 @@ def supervisedIBMModel2(stCoOccurrenceCount, bitext, partialAlignments):
 
     jilmCombinations = set()
 
+    print ">>>> IBM Model 2 - Supervised"
     for source, target in bitext:
         for sIdx, sWord in enumerate(source):
             if sWord in partialAlignments:
@@ -33,7 +34,9 @@ def supervisedIBMModel2(stCoOccurrenceCount, bitext, partialAlignments):
                     jiCounts[(tIdx, sIdx, len(target), len(source))] += 1 # for using later in q(j|i,l,m) normalization
                     iCounts[(sIdx, len(target), len(source))] += 1 # for using later in q(j|i,l,m) normalization
 
+    print '>>>> >>>> Maximization Step: tProb'
     tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+    print '>>>> >>>> Maximization Step: qProb'
     qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
@@ -47,11 +50,16 @@ def unsupervisedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QProb):
     _, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> Unsupervised IBM Model 2 - EM Iteration " + str(emIter)
+
         # Calculate counts
+        print '>>>> >>>> Expectation Step'
         stCounts, tCounts, jiCounts, iCounts = _expectation(bitext, tProb, qProb)
 
         # Calculate probabilities
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
@@ -65,13 +73,17 @@ def interpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QProb, sup
     _, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> Interpolated IBM Model 2 - EM Iteration " + str(emIter)
 
         # Calculate counts
+        print '>>>> >>>> Expectation Step'
         stCounts, tCounts, jiCounts, iCounts = _expectation(bitext, tProb, qProb)
 
         # Calculate probabilities
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedIBM2TProb,
                                               lWeight)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedIBM2QProb, lWeight)
 
     return tProb, qProb
@@ -85,9 +97,11 @@ def parallelUnsupervisedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
     _, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
+        print ">>>> Unsupervised  IBM Model 2 - EM Iteration " + str(emIter)
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Calculate counts
+        print '>>>> >>>> Expectation Step'
         outputQueue = multiprocessing.Queue()
         numberOfProcessAllowed = multiprocessing.cpu_count()
         chunkSize = int(math.ceil(len(bitext) / float(numberOfProcessAllowed)))
@@ -110,7 +124,9 @@ def parallelUnsupervisedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
             proc.join()
 
         # Calculate probabilities
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationQProb(qProb, jiCounts, iCounts, jilmCombinations)
 
     return tProb, qProb
@@ -124,11 +140,12 @@ def parallelInterpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
     _, jilmCombinations = initializeQProbUniformly(bitext)
 
     for emIter in range(10):
-        print ">>>> IBM Model 1 - EM Iteration " + str(emIter)
+        print ">>>> Interpolated IBM Model 2 - EM Iteration " + str(emIter)
 
         stCounts, tCounts, jiCounts, iCounts = initializeCounts()
 
         # Calculate counts
+        print '>>>> >>>> Expectation Step'
         outputQueue = multiprocessing.Queue()
         numberOfProcessAllowed = multiprocessing.cpu_count()
         chunkSize = int(math.ceil(len(bitext) / float(numberOfProcessAllowed)))
@@ -151,8 +168,10 @@ def parallelInterpolatedIBMModel2(stCoOccurrenceCount, bitext, ibm1TProb, ibm1QP
             proc.join()
 
         # Calculate probabilities
+        print '>>>> >>>> Maximization Step: tProb'
         tProb = maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedIBM2TProb,
                                               lWeight)
+        print '>>>> >>>> Maximization Step: qProb'
         qProb = maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, supervisedIBM2QProb, lWeight)
 
     return tProb, qProb

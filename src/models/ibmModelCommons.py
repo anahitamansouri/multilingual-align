@@ -4,7 +4,6 @@ from collections import defaultdict
 
 
 def maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb):
-    print '>>>> Maximizing TProb'
     for (sWord, tWord) in stCoOccurrenceCount:
         try:
             tProb[(sWord, tWord)] = stCounts[(sWord, tWord)] / tCounts[tWord]
@@ -14,7 +13,6 @@ def maximizationTProb(stCoOccurrenceCount, stCounts, tCounts, tProb):
 
 
 def maximizationInterpolatedTProb(stCoOccurrenceCount, stCounts, tCounts, tProb, supervisedTProb, lWeight):
-    print '>>>> Maximizing Interpolated TProb'
     for sWord, tWord in stCoOccurrenceCount:
         try:
             tProbST = stCounts[(sWord, tWord)] / tCounts[tWord]
@@ -74,7 +72,6 @@ def maximizationInterpolatedQProb(qProb, jiCounts, iCounts, jilmCombinations, su
 
 
 def initializeTProbUniformly(sourceCounts, stCoOccurrenceCount):
-    print '>>>> Initializing TProb Uniformly'
     tProb = defaultdict(float)
     for (source, target) in stCoOccurrenceCount:
         tProb[(source, target)] = 1.0/len(sourceCounts)
@@ -82,7 +79,6 @@ def initializeTProbUniformly(sourceCounts, stCoOccurrenceCount):
 
 
 def initializeQProbUniformly(bitext):
-    print '>>>> Initializing QProb Uniformly'
     qProb = defaultdict(float)
 
     jValues = set()
