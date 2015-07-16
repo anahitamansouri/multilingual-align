@@ -133,6 +133,8 @@ if __name__ == '__main__':
     optParser.add_argument("--ibm2", dest="ibm2", action='store_true', default=False, help="Turn on IBM Model 2 (default=False)")
     optParser.add_argument("--hmm", dest="hmm", action='store_true', default=False, help="Turn on HMM (default=False")
     optParser.add_argument("-md", "--modelDir", dest="modelDir", default=None, help="Directory for storing models")
+    optParser.add_argument("--ibm1-model", dest="ibm1ModelDir", default=None, help="Load pre-calculated IBM Model 1 models")
+    optParser.add_argument("--ibm2-model", dest="ibm2ModelDir", default=None, help="Load pre-calculated IBM Model 2 models")
 
     opts = optParser.parse_args()
 
@@ -178,16 +180,23 @@ if __name__ == '__main__':
         partialAlignments = readPartialAlignments(opts.annotation, opts.annotationSourceColumn, opts.annotationTargetColumn)
 
     # Run IBM Model 1
-    tProb, qProb = runIBMModel1(fCount, feCount, bitextFE, partialAlignments, opts.ibm1Lambda, opts.interIBMModel1)
-    if opts.modelDir:
-        with open(os.path.join(opts.modelDir, 'ibm1.tprob'), 'w') as tProbFile, \
-                open(os.path.join(opts.modelDir, 'ibm1.qprob'), 'w') as qProbFile:
-            pickle.dump(tProb, tProbFile)
-            pickle.dump(qProb, qProbFile)
-
+    if not opts.ibm2ModelDir:
+        if opts.ibm1ModelDir:
+            print "LOADING IBM MODEL 1 MODELS FROM FILE"
+            with open(os.path.join(opts.ibm1ModelDir, 'ibm1.tprob')) as tProbFile, \
+                    open(os.path.join(opts.ibm1ModelDir, 'ibm1.qprob')) as qProbFile:
+                tProb = pickle.load(tProbFile)
+                qProb = pickle.load(qProbFile)
+        else:
+            tProb, qProb = runIBMModel1(fCount, feCount, bitextFE, partialAlignments, opts.ibm1Lambda, opts.interIBMModel1)
+            if opts.modelDir:
+                with open(os.path.join(opts.modelDir, 'ibm1.tprob'), 'w') as tProbFile, \
+                        open(os.path.join(opts.modelDir, 'ibm1.qprob'), 'w') as qProbFile:
+                    pickle.dump(tProb, tProbFile)
+                    pickle.dump(qProb, qProbFile)
 
     # Run IBM Model 2
-    if opts.ibm2:
+    if opts.ibm2 and not opts.ibm2ModelDir:
         tProb, qProb = runIBMModel2(fCount, feCount, bitextFE, tProb, qProb, partialAlignments, opts.ibm2Lambda,
                                     opts.interIBMModel2)
         if opts.modelDir:
@@ -195,6 +204,12 @@ if __name__ == '__main__':
                     open(os.path.join(opts.modelDir, 'ibm2.qprob'), 'w') as qProbFile:
                 pickle.dump(tProb, tProbFile)
                 pickle.dump(qProb, qProbFile)
+    elif opts.ibm2 and opts.ibm2ModelDir:
+        print "LOADING IBM MODEL 2 MODELS FROM FILE"
+        with open(os.path.join(opts.ibm2ModelDir, 'ibm2.tprob')) as tProbFile, \
+                open(os.path.join(opts.ibm2ModelDir, 'ibm2.qprob')) as qProbFile:
+            tProb = pickle.load(tProbFile)
+            qProb = pickle.load(qProbFile)
 
     # Run HMM
     if opts.hmm:
